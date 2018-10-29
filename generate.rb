@@ -70,19 +70,21 @@ class Generator
 
 
     result = <<-HTML
-      <table>
+      <table class="table table-striped table-bordered table-sm text-left issues">
         <thead>
           <tr> 
-            <th>
-              Issue Number
+            <th width="10%">
+              Issue<br/> 
+              Number
             </th>
-            <th>
-              Issue Type
+            <th width="15%">
+              Issue<br/>
+              Type
             </th>
-            <th>
+            <th width="50%">
               Name
             </th>
-            <th>
+            <th width="10%">
               Points
             </th>
           </tr>
@@ -132,32 +134,44 @@ class Generator
     percent_proactive = points_proactive / points_completed.to_f * 100
 
     result = <<-HTML
-    <p>This sprint our velocity was [up/down/the same]: #{points_completed} points ([up/down from X] last sprint).</p>
+    <html>
+      <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <style type="text/css">
+          table.issues{
+            width: 60%;
+          }
+        </style>
+      </head>
+      <body>
+        <p>This sprint our velocity was [up/down/the same]: #{points_completed} points ([up/down from X] last sprint).</p>
 
-    <p>
-      <strong>Story breakdown stats:</strong>
-      <ul>
-        <li><strong>Number Proactive Stories vs Reactive Stories vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs #{num_bugs}</li>
-        <li><strong>Points Proactive vs Reactive:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%)</li>
-      </ul>
-    </p>
+        <h5>Story breakdown stats:</h5>
+        <p>
+          <ul>
+            <li><strong>Number Proactive Stories vs Reactive Stories vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs #{num_bugs}</li>
+            <li><strong>Proactive vs Reactive Points:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%)</li>
+          </ul>
+        </p>
 
-    <p>
-      <strong>Heroes:</strong>
-    </p>
+        <h5>Heroes:</h5>
+        <p>
+        </p>
 
-    <p>
-      <strong>Heroes:</strong>
-    </p>
+        <h5>Hassles:</h5>
+        <p>
+        </p>
 
-    <p><strong>Completed (#{points_completed}):</strong></p>
-    #{generate_table(completed_stories)}
+        <h5>Completed (#{points_completed}):</h5>
+        #{generate_table(completed_stories)}
 
-    <p><strong>In QA (#{points_qa}):</strong></p>
-    #{generate_table(in_qa_stories)}    
+        <h5>In QA (#{points_qa}):</h5>
+        #{generate_table(in_qa_stories)}    
 
-    <p><strong>In Progress (#{points_in_progress}):</strong></p>
-    #{generate_table(in_progress_stories)}
+        <h5>In Progress (#{points_in_progress}):</h5>
+        #{generate_table(in_progress_stories)}
+      </body>
+    </html>
 
     HTML
   end
