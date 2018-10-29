@@ -4,6 +4,12 @@ require 'YAML'
 class Generator
   API_KEY = 'API_KEY'
   YEAR = '2018'
+  PROACTIVE_LABEL_NAME = 'proactive'
+  REACTIVE_LABEL_NAME = 'reactive'
+  STORY_TYPE_BUG = 'bug'
+  IN_QA_NAME = 'In QA'
+  COMPLETED_NAME = 'Completed'  
+
 
   def api_key
     config = YAML::load(File.open('config/application.yml'))
@@ -12,7 +18,7 @@ class Generator
   end
 
   def point_string(story)
-    if story.story_type == "bug"
+    if story.story_type == STORY_TYPE_BUG
       return '-'
     else
       return story.estimate
@@ -32,10 +38,10 @@ class Generator
   end
 
   def issue_type(story)
-    if story.story_type == "bug"
+    if story.story_type == STORY_TYPE_BUG
       return "Bug"
     else
-      if story.labels.map(&:name).include? "reactive"
+      if story.labels.map(&:name).include? REACTIVE_LABEL_NAME
         return "Reactive Story"
       else
         return "Proactive Story"
@@ -92,16 +98,16 @@ class Generator
     sprint_number = sprint_number.to_i
     client = Clubhouse::Client.new(api_key: api_key)
     sprint_label  = client.label(name: "Sprint #{YEAR}-#{sprint_number}")
-    proactive_label = client.label(name: "proactive")
-    reactive_label = client.label(name: "reactive")
+    proactive_label = client.label(name: PROACTIVE_LABEL_NAME)
+    reactive_label = client.label(name: REACTIVE_LABEL_NAME)
 
     stories = client.stories(archived: false, labels: sprint_label)
 
     points_completed = sprint_label.stats["num_points_completed"]
     stories_completed = sprint_label.stats["num_stories_completed"]
 
-    in_qa_state = client.workflow.state(name: 'In QA')
-    completed_state = client.workflow.state(name: 'Completed')
+    in_qa_state = client.workflow.state(name: IN_QA_NAME)
+    completed_state = client.workflow.state(name: COMPLETED_NAME)
     in_progress_state_ids = client.workflow.states.reject { |state| state == in_qa_state || state == completed_state }.map(&:id)
 
     num_stories_completed = sprint_label.stats['num_stories_completed']
@@ -112,9 +118,9 @@ class Generator
       workflow_state_id: in_qa_state.id)
     in_progress_stories = stories.select {|story| in_progress_state_ids.include?(story.workflow_state_id) }
 
-    completed_proactive_stories = completed_stories.select {|story| story.labels.include?(proactive_label) && story.story_type != "bug" }
-    completed_reactive_stories = completed_stories.select {|story| story.labels.include?(reactive_label) && story.story_type != "bug" }
-    completed_bugs = completed_stories.select {|story| story.story_type == "bug" }
+    completed_proactive_stories = completed_stories.select {|story| story.labels.include?(proactive_label) && story.story_type != STORY_TYPE_BUG }
+    completed_reactive_stories = completed_stories.select {|story| story.labels.include?(reactive_label) && story.story_type != STORY_TYPE_BUG }
+    completed_bugs = completed_stories.select {|story| story.story_type == STORY_TYPE_BUG }
 
     num_stories_reactive, points_reactive = story_stats(completed_reactive_stories)
     num_stories_proactive, points_proactive = story_stats(completed_proactive_stories)
