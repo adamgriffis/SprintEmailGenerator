@@ -182,6 +182,7 @@ generator = Generator.new
 path = "sprints/sprint-#{Generator::YEAR}-#{sprint}.html"
 html = generator.generate_email(sprint)
 File.open(path, 'w') { |file| file.write(html) }
+system %{open "#{path}"}
 puts "======================================================================================"
 puts "=                      Done Generating HTML                                          ="
 puts "======================================================================================"
