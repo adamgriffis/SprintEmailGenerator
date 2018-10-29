@@ -1,8 +1,15 @@
 require 'clubhouse2'
+require 'YAML'
 
 class Generator
-  API_KEY = '5bd63896-1d3b-4259-9e1c-545ac2283745'
+  API_KEY = 'API_KEY'
   YEAR = '2018'
+
+  def api_key
+    config = YAML::load(File.open('config/application.yml'))
+
+    config[API_KEY]
+  end
 
   def point_string(story)
     if story.story_type == "bug"
@@ -83,7 +90,7 @@ class Generator
 
   def generate_email(sprint_number)
     sprint_number = sprint_number.to_i
-    client = Clubhouse::Client.new(api_key: API_KEY)
+    client = Clubhouse::Client.new(api_key: api_key)
     sprint_label  = client.label(name: "Sprint #{YEAR}-#{sprint_number}")
     proactive_label = client.label(name: "proactive")
     reactive_label = client.label(name: "reactive")
