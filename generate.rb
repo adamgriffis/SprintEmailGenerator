@@ -7,6 +7,7 @@ class Generator
   PROACTIVE_LABEL_NAME = 'proactive'
   REACTIVE_LABEL_NAME = 'reactive'
   STORY_TYPE_BUG = 'bug'
+  STORY_TYPE_CHORE = 'chore'
   IN_QA_NAME = 'In QA'
   COMPLETED_NAME = 'Completed'  
 
@@ -18,7 +19,7 @@ class Generator
   end
 
   def point_string(story)
-    if story.story_type == STORY_TYPE_BUG
+    if story.story_type == STORY_TYPE_BUG 
       return '-'
     else
       return story.estimate
@@ -38,7 +39,9 @@ class Generator
   end
 
   def issue_type(story)
-    if story.story_type == STORY_TYPE_BUG
+    if story.story_type == STORY_TYPE_CHORE
+      return "Chore"
+    elsif story.story_type == STORY_TYPE_BUG
       return "Bug"
     else
       if story.labels.map(&:name).include? REACTIVE_LABEL_NAME
