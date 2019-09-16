@@ -3,9 +3,10 @@ require 'YAML'
 
 class Generator
   API_KEY = 'API_KEY'
-  YEAR = '2018'
+  YEAR = '2019'
   PROACTIVE_LABEL_NAME = 'proactive'
   REACTIVE_LABEL_NAME = 'reactive'
+  NON_PRODUCT_LABEL_NAME = 'Non-product'
   STORY_TYPE_BUG = 'bug'
   STORY_TYPE_CHORE = 'chore'
   IN_QA_NAME = 'In QA'
@@ -44,7 +45,10 @@ class Generator
     elsif story.story_type == STORY_TYPE_BUG
       return "Bug"
     else
-      if story.labels.map(&:name).include? REACTIVE_LABEL_NAME
+
+      if story.labels.map(&:name).include? NON_PRODUCT_LABEL_NAME
+        return "Non-product Story"
+      elsif story.labels.map(&:name).include? REACTIVE_LABEL_NAME
         return "Reactive Story"
       else
         return "Proactive Story"
@@ -105,6 +109,7 @@ class Generator
     sprint_label  = client.label(name: "Sprint #{YEAR}-#{sprint_number}")
     proactive_label = client.label(name: PROACTIVE_LABEL_NAME)
     reactive_label = client.label(name: REACTIVE_LABEL_NAME)
+    non_product_label = client.label(name: NON_PRODUCT_LABEL_NAME)
 
     stories = client.stories(archived: false, labels: sprint_label)
 
@@ -119,14 +124,15 @@ class Generator
     points_completed = sprint_label.stats['num_points_completed']
 
     completed_stories = sprint_label.stories.select {|story| story.workflow_state_id == completed_state.id}
-    in_qa_stories = client.stories(archived: false, labels: [sprint_label], 
-      workflow_state_id: in_qa_state.id)
+    in_qa_stories = sprint_label.stories.select {|story| story.workflow_state_id == in_qa_state.id}
     in_progress_stories = stories.select {|story| in_progress_state_ids.include?(story.workflow_state_id) }
 
+    completed_non_product_stories = completed_stories.select {|story| story.labels.include?(non_product_label) && story.story_type != STORY_TYPE_BUG }
     completed_proactive_stories = completed_stories.select {|story| story.labels.include?(proactive_label) && story.story_type != STORY_TYPE_BUG }
     completed_reactive_stories = completed_stories.select {|story| story.labels.include?(reactive_label) && story.story_type != STORY_TYPE_BUG }
     completed_bugs = completed_stories.select {|story| story.story_type == STORY_TYPE_BUG }
 
+    num_stories_nonproduct, points_nonproduct = story_stats(completed_non_product_stories)
     num_stories_reactive, points_reactive = story_stats(completed_reactive_stories)
     num_stories_proactive, points_proactive = story_stats(completed_proactive_stories)
     num_bugs, points_bugs = story_stats(completed_bugs)
@@ -135,6 +141,7 @@ class Generator
 
     percent_reactive = points_reactive / points_completed.to_f * 100
     percent_proactive = points_proactive / points_completed.to_f * 100
+    percent_nonproduct = points_nonproduct / points_completed.to_f * 100
 
     result = <<-HTML
     <html>
@@ -152,8 +159,8 @@ class Generator
         <h5>Story breakdown stats:</h5>
         <p>
           <ul>
-            <li><strong>Number Proactive Stories vs Reactive Stories vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs #{num_bugs}</li>
-            <li><strong>Proactive vs Reactive Points:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%)</li>
+            <li><strong>Number Proactive Stories vs Reactive Stories vs Non-product vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs vs #{num_stories_nonproduct} vs #{num_bugs}</li>
+            <li><strong>Proactive vs Reactive vs Non-Product Points:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%) vs #{points_nonproduct} (#{"%.1f" % percent_nonproduct}%)</li>
           </ul>
         </p>
 
