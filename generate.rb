@@ -7,6 +7,7 @@ class Generator
   PROACTIVE_LABEL_NAME = 'proactive'
   REACTIVE_LABEL_NAME = 'reactive'
   NON_PRODUCT_LABEL_NAME = 'Non-product'
+  ACCOUNT_CUSTOMIZATION_LABEL_NAME = 'Account Customization'
   STORY_TYPE_BUG = 'bug'
   STORY_TYPE_CHORE = 'chore'
   IN_QA_NAME = 'In QA'
@@ -41,6 +42,10 @@ class Generator
 
   def issue_type(story)
     if story.story_type == STORY_TYPE_CHORE
+      if story.labels.map(&:name).include? ACCOUNT_CUSTOMIZATION_LABEL_NAME
+        return "Account Customization"
+      end
+
       return "Chore"
     elsif story.story_type == STORY_TYPE_BUG
       return "Bug"
@@ -110,6 +115,7 @@ class Generator
     proactive_label = client.label(name: PROACTIVE_LABEL_NAME)
     reactive_label = client.label(name: REACTIVE_LABEL_NAME)
     non_product_label = client.label(name: NON_PRODUCT_LABEL_NAME)
+    account_customization_label = client.label(name: ACCOUNT_CUSTOMIZATION_LABEL_NAME)
 
     stories = client.stories(archived: false, labels: sprint_label)
 
@@ -130,14 +136,18 @@ class Generator
     completed_non_product_stories = completed_stories.select {|story| story.labels.include?(non_product_label) && story.story_type != STORY_TYPE_BUG }
     completed_proactive_stories = completed_stories.select {|story| story.labels.include?(proactive_label) && story.story_type != STORY_TYPE_BUG }
     completed_reactive_stories = completed_stories.select {|story| story.labels.include?(reactive_label) && story.story_type != STORY_TYPE_BUG }
+    completed_account_customization = completed_stories.select { |story| story.labels.include?(account_customization_label) && story.story_type != STORY_TYPE_BUG }
     completed_bugs = completed_stories.select {|story| story.story_type == STORY_TYPE_BUG }
 
+    num_stories_customization, points_customization = story_stats(completed_account_customization)
     num_stories_nonproduct, points_nonproduct = story_stats(completed_non_product_stories)
     num_stories_reactive, points_reactive = story_stats(completed_reactive_stories)
     num_stories_proactive, points_proactive = story_stats(completed_proactive_stories)
     num_bugs, points_bugs = story_stats(completed_bugs)
     num_stories_qa, points_qa = story_stats(in_qa_stories)
     num_stories_in_progress, points_in_progress = story_stats(in_progress_stories)
+
+    points_completed -= points_customization
 
     percent_reactive = points_reactive / points_completed.to_f * 100
     percent_proactive = points_proactive / points_completed.to_f * 100
@@ -161,6 +171,7 @@ class Generator
           <ul>
             <li><strong>Number Proactive Stories vs Reactive Stories vs Non-product vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs vs #{num_stories_nonproduct} vs #{num_bugs}</li>
             <li><strong>Proactive vs Reactive vs Non-Product Points:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%) vs #{points_nonproduct} (#{"%.1f" % percent_nonproduct}%)</li>
+            <li><strong>Points spent on account customization (not currently included in velocity):</strong> #{points_customization} (#{num_stories_customization} storie(s))
           </ul>
         </p>
 
