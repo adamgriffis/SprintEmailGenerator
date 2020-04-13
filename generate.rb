@@ -3,7 +3,7 @@ require 'YAML'
 
 class Generator
   API_KEY = 'API_KEY'
-  YEAR = '2019'
+  YEAR = '2020'
   PROACTIVE_LABEL_NAME = 'proactive'
   REACTIVE_LABEL_NAME = 'reactive'
   NON_PRODUCT_LABEL_NAME = 'Non-product'
@@ -12,6 +12,7 @@ class Generator
   STORY_TYPE_CHORE = 'chore'
   IN_QA_NAME = 'In QA'
   COMPLETED_NAME = 'Completed'  
+  HAS_STORY_NAME = 'has story'
 
 
   def api_key
@@ -108,6 +109,21 @@ class Generator
     HTML
   end
 
+  def has_story_stats(client)
+    has_story_label = client.label(name: HAS_STORY_NAME) 
+    in_qa_state = client.workflow.state(name: IN_QA_NAME)
+    completed_state = client.workflow.state(name: COMPLETED_NAME)
+    in_progress_state_ids = client.workflow.states.reject { |state| state == in_qa_state || state == completed_state }.map(&:id)
+
+    stories = client.stories(archived: false, labels: has_story_label, completed: false)
+
+    working_state_ids = [completed_state, in_qa_state] + in_progress_state_ids
+
+    stories = stories.select { |story| !in_progress_state_ids.include?(story.workflow_state_id) }
+
+    story_stats(stories)
+  end
+
   def generate_email(sprint_number)
     sprint_number = sprint_number.to_i
     client = Clubhouse::Client.new(api_key: api_key)
@@ -136,7 +152,7 @@ class Generator
     completed_non_product_stories = completed_stories.select {|story| story.labels.include?(non_product_label) && story.story_type != STORY_TYPE_BUG }
     completed_proactive_stories = completed_stories.select {|story| story.labels.include?(proactive_label) && story.story_type != STORY_TYPE_BUG }
     completed_reactive_stories = completed_stories.select {|story| story.labels.include?(reactive_label) && story.story_type != STORY_TYPE_BUG }
-    completed_account_customization = completed_stories.select { |story| story.labels.include?(account_customization_label) && story.story_type != STORY_TYPE_BUG }
+    completed_account_customization = completed_stories.select { |story| story.labels.include?(account_customization_label) && story.story_type == STORY_TYPE_CHORE }
     completed_bugs = completed_stories.select {|story| story.story_type == STORY_TYPE_BUG }
 
     num_stories_customization, points_customization = story_stats(completed_account_customization)
@@ -146,6 +162,7 @@ class Generator
     num_bugs, points_bugs = story_stats(completed_bugs)
     num_stories_qa, points_qa = story_stats(in_qa_stories)
     num_stories_in_progress, points_in_progress = story_stats(in_progress_stories)
+    num_has_story, points_has_story = has_story_stats(client)
 
     points_completed -= points_customization
 
@@ -172,6 +189,7 @@ class Generator
             <li><strong>Number Proactive Stories vs Reactive Stories vs Non-product vs Bugs:</strong> #{num_stories_proactive} vs #{num_stories_reactive} vs vs #{num_stories_nonproduct} vs #{num_bugs}</li>
             <li><strong>Proactive vs Reactive vs Non-Product Points:</strong> #{points_proactive} (#{"%.1f" % percent_proactive}%) vs #{points_reactive} (#{"%.1f" % percent_reactive}%) vs #{points_nonproduct} (#{"%.1f" % percent_nonproduct}%)</li>
             <li><strong>Points spent on account customization (not currently included in velocity):</strong> #{points_customization} (#{num_stories_customization} storie(s))
+            <li><strong>"Storied" backlog:</strong> #{points_has_story} (#{num_has_story} storie(s))
           </ul>
         </p>
 
