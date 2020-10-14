@@ -1,0 +1,2 @@
+sprint,velocity,points planned,points unplanned,points tech debt,points non product,points customization,num planned,num unplanned,num tech debt,num non product,num bugs completed,num bugs created,points not completed,num_not_completed,percent completed of committed,points have story,num have story
+ROW Sprint 2020-18,71,0,0,3,3,3,0,0,1,1,25,0,3,7,95.94594594594594,65,15
