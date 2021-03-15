@@ -319,12 +319,10 @@ class Generator
         <p>
           <ul>
             <li><strong>Number Planned Stories vs Unplanned Stories vs Tech Debt vs Non-product vs Bugs:</strong> #{num_stories_planned} vs #{num_stories_unplanned} vs #{num_stories_tech_debt} vs #{num_stories_nonproduct} vs #{num_bugs}</li>
-            <li><strong>Planed vs Unplanned vs Tech Debt vs Non-Product Points:</strong> #{points_planned} (#{"%.1f" % percent_planned}%) vs #{points_unplanned} (#{"%.1f" % percent_unplanned}%) vs #{points_tech_debt} (#{"%.1f" % points_tech_debt}) vs #{points_nonproduct} (#{"%.1f" % percent_nonproduct}%)</li>
+            <li><strong>Planned vs Unplanned vs Tech Debt vs Non-Product Points:</strong> #{points_planned} (#{"%.1f" % percent_planned}%) vs #{points_unplanned} (#{"%.1f" % percent_unplanned}%) vs #{points_tech_debt} (#{"%.1f" % points_tech_debt}) vs #{points_nonproduct} (#{"%.1f" % percent_nonproduct}%)</li>
             <li><strong>Points spent on account customization (not currently included in velocity):</strong> #{points_customization} (#{num_stories_customization} storie(s))
             <li><strong>Points we committed to but didn't finish:</strong> #{points_sprint_committed} (#{num_sprint_comitted} storie(s)) --- #{"%.1f" % percent_completed_of_committed}% of commitments completed</li>
-            <li><strong>Percent roadmap planned: #{percent_planned_of_rm}
-
-            <li><strong>"Storied" backlog:</strong> #{points_has_story} (#{num_has_story} storie(s))</li>           
+            <li><strong>Percent roadmap planned:</strong> #{"%.1f" % percent_planned_of_rm}%
           </ul>
         </p>
         <h5>Bug stats:</h5>
@@ -333,8 +331,6 @@ class Generator
             <li><strong>Bugs Created vs Bugs Fixed:</strong>#{num_bugs_created} vs #{num_bugs}</li>
             <li><strong>Bugs Created Regression, Major and Critical:</strong>#{num_regression_created} regression, #{num_major_created} major, #{num_critical_created} critical</li>
             <li><strong>Bugs Completed Regression, Major and Critical:</strong>#{num_regression_completed} regression, #{num_major_completed} major, #{num_critical_completed} critical</li>
-
-            <li><strong>"Storied" backlog:</strong> #{points_has_story} (#{num_has_story} storie(s))</li>            
           </ul>
         </p>
 
